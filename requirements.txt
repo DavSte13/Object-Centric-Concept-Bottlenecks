@@ -1,0 +1,20 @@
+torch
+torchvision
+scikit-learn
+open_clip_torch
+pandas
+seaborn
+matplotlib
+tqdm
+rtpt
+pillow
+numpy
+h5py
+wandb
+opencv-python-headless
+
+transformers
+
+# jupyter
+ipykernel
+jupyter
