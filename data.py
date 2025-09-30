@@ -5,8 +5,7 @@ import json
 import torch
 from PIL import Image
 import torchvision.transforms as T
-from torchvision.datasets import SUN397, VOCDetection
-import random
+from torchvision.datasets import SUN397, VOCDetection, CIFAR100
 from collections import defaultdict, Counter
 
 
@@ -113,10 +112,28 @@ class SUNDataset(SUN397):
     def __getitem__(self, index):
         # as SUN does not have supercategories, categories and supercategories are the same
         img, label = super().__getitem__(index)
+        # using the filename does not work, as it is a string and not an id.
+        # img_id = str(self._image_files[index]).split("/")[-1].split(".")[0]
 
         label_exp = torch.zeros((397))
         label_exp[label] = 1
         return img, label_exp, label_exp, self.filename_to_id[self._image_files[index]]
+
+
+class CIFAR100Dataset(CIFAR100):
+    def __init__(self, root, transform=None, train=True, download=False):
+        super().__init__(root=root, train=train, transform=transform, download=download)
+        if self.transform is None:
+            self.transform = T.Compose([T.Resize((224, 224)), T.ToTensor()])
+
+    def __getitem__(self, index):
+        img, label = super().__getitem__(index)
+
+        # img = self.transform(img) the parent dataloader applies the transform
+        one_hot_label = torch.zeros(100)
+        one_hot_label[label] = 1
+
+        return img, one_hot_label, one_hot_label, index
 
 
 class PascalVOCDataset(VOCDetection):
@@ -213,7 +230,6 @@ class COCOLogicDataset(Dataset):
         annotation_file: path to COCO annotations JSON
         image_dir: path to the images folder
         category_id_to_name: dict mapping COCO category id to names
-        transform: torchvision transforms
         filter_no_labels: if True, drops images that satisfy no logical classes
         exclusive_label: if True, only assign first matching class as 1 (others 0)
         exclusive_match_only: if True, only include images that match exactly one logical class
@@ -244,7 +260,7 @@ class COCOLogicDataset(Dataset):
             img_id = ann["image_id"]
             cat_id = ann["category_id"]
             cat_name = category_id_to_name[cat_id]
-            self.image_to_categories.setdefault(img_id, list()).append(cat_name)
+            self.image_to_categories.setdefault(img_id, set()).add(cat_name)
             category_frequency[cat_name] += 1
 
         # # logical class definitions
@@ -257,10 +273,10 @@ class COCOLogicDataset(Dataset):
                     lambda cats: (("cat" in cats) ^ ("dog" in cats))
                     and (("bicycle" in cats) ^ ("motorcycle" in cats)),
                 ),
-                # 2. Pair of Pets. Exactly two of the following animals are present: a cat, a dog, or a bird.
+                # 2. Pair of Pets. Exactly two of the following animal categories are present: a cat, a dog, or a bird.
                 (
                     "Pair of Pets",
-                    lambda cats: sum(cats.count(c) for c in ["cat", "dog", "bird"]) == 2,
+                    lambda cats: sum(c in cats for c in ["cat", "dog", "bird"]) == 2,
                 ),
                 # 3. Rural Animal Scene. The image includes one or more rural animals (cow, horse, or sheep) and no people.
                 (
@@ -276,27 +292,30 @@ class COCOLogicDataset(Dataset):
                 # 5. Animal Meet Traffic. The image contains a rural animal (horse, cow, or sheep) and a
                 # traffic-related object (car, bus, or traffic light).
                 (
-                    "Animal Meet Traffic",
+                    "Animal Meets Traffic",
                     lambda cats: any(c in cats for c in ["horse", "cow", "sheep"])
                     and any(c in cats for c in ["car", "bus", "traffic light"]),
                 ),
-                # 6. Home Alone. The image includes furniture (a couch or chair) and exactly one person.
+                # 6. Occupied Interior. The image includes furniture (a couch or chair) and at least one person.
                 (
-                    "Home Alone",
+                    "Occupied Interior",
                     lambda cats: any(c in cats for c in ["couch", "chair"])
                     and "person" in cats
                     and sum(c == "person" for c in cats) == 1,
                 ),
-                # 7. Empty House. The image includes indoor furniture (a couch or chair) but no person is present.
+                # 7. Empty Seat. The image includes indoor furniture (a couch or chair) but no person is present.
                 (
-                    "Empty House",
+                    "Empty Seat",
                     lambda cats: any(c in cats for c in ["couch", "chair"])
                     and "person" not in cats,
                 ),
-                # 8. Odd Ride Out. Exactly one of the following is present: a bicycle, motorcycle, car, or bus.
+                # 8. Odd Ride Out. Exactly one of the following categories is present: a bicycle, motorcycle, car, or bus.
                 (
                     "Odd Ride Out",
-                    lambda cats: sum(cats.count(c) for c in ['bicycle', 'motorcycle', 'bus', 'car']) == 1,
+                    lambda cats: sum(
+                        c in cats for c in ["bicycle", "motorcycle", "bus", "car"]
+                    )
+                    == 1,
                 ),
                 # 9. Personal Transport XOR Car. A person is present alongside either a bicycle or a car — but not both.
                 (
@@ -312,8 +331,8 @@ class COCOLogicDataset(Dataset):
                 ),
             ]
         else:
-            raise Exception("COCOLogic other than 10 is not implemented") 
-        
+            raise Exception("COCOLogic other than 10 is not implemented")
+
         total_images = len(self.imgs)
         kept_images = 0
         class_counts = defaultdict(int)
@@ -321,7 +340,7 @@ class COCOLogicDataset(Dataset):
 
         self.image_ids = []
         for img_id in self.imgs:
-            cats = self.image_to_categories.get(img_id, list())
+            cats = self.image_to_categories.get(img_id, set())
             labels = [int(fn(cats)) for _, fn in self.logical_classes]
 
             if filter_no_labels and not any(labels):
@@ -374,7 +393,7 @@ class COCOLogicDataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
-        categories = self.image_to_categories.get(img_id, list())
+        categories = self.image_to_categories.get(img_id, set())
         labels = [int(fn(categories)) for _, fn in self.logical_classes]
 
         if self.exclusive_label:

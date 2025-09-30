@@ -184,3 +184,7 @@ data/
 
 # wandb
 wandb/
+
+# pytorch model files
+*.pt
+*.pth
