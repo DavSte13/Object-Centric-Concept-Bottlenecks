@@ -53,23 +53,46 @@ Once embeddings are generated, you can train a predictor model via `` python tra
 --learning_rate           Learning rate (default: 0.001)
 --prediction_level        Class granularity ['super', 'normal']
 --task_type               Task type ['multilabel', 'multiclass']
---dataset                 Dataset name ['coco', 'sun', 'voc', 'cocologic', 'corel']
+--dataset                 Dataset name ['coco', 'sun', 'voc', 'cocologic']
 --encoding_dir            Path to image-level embeddings
 ```
+
+For baseline/ablation experiments:
+
+```
+--only_objects            If set, aggregate only object encodings instead of combining with image encodings
+--no_concepts             If set, disables the use of concepts in the model
+```
+
 
 ### Additional Parameters for OCB Training:
 
 ```
 --aggregation             Object encoding aggregation ['sum', 'max', 'concat', sum_count', 'count']
---num_objects              Same as during embedding
+--num_objects              Same as during embedding generation
+--num_objects_training     Number of objects used during training (up to a maximum of num_objects)
 --object_encoding_dir      "
 --min_object_size          "
 --max_object_size          "
 --min_score                "
 --max_iou_threshold        "
 --object_detection_model   "
+--only_objects             " 
+--no_concepts              "
 ```
+
+### WandB Logging
+
+The codebase supports experiment tracking with Weights & Biases (WandB).
+To enable logging, configure the following arguments:
+
+```
+--wandb_project           WandB project name
+--wandb_run_name          Run name for experiment tracking
+```
+
+When enabled, all metrics, losses, and configuration parameters will be logged automatically to your WandB dashboard.
 
 ### Scripts
 
-All helper scripts for precomputing embeddings and launching training can be found in the ``scripts/`` directory.
+Helper scripts for precomputing embeddings and launching training can be found in the ``scripts/`` directory.

@@ -197,10 +197,10 @@ def add_wandb_args(parser: argparse.ArgumentParser):
     parser.add_argument(
         "--wandb_project",
         type=str,
-        default="self adaptive concept-bottleneck-training",
+        default="OCB",
         help="WandB project name",
     )
     parser.add_argument(
-        "--wandb_run_name", type=str, default="sun_eval", help="WandB run name"
+        "--wandb_run_name", type=str, default="OCB_eval", help="WandB run name"
     )
     return parser
