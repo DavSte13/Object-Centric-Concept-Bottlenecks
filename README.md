@@ -1,6 +1,8 @@
 # Object-Centric-Concept-Bottlenecks
 
-This repository contains code for computing concept embeddings and training predictor models using object-centric bottlenecks. The approach extends traditional concept-based models by incorporating object-level semantics for improved interpretability and performance.
+This repository contains code for computing concept embeddings and training predictor models using object-centric bottlenecks (https://arxiv.org/abs/2505.24492). The approach extends traditional concept-based models by incorporating object-level semantics for improved interpretability and performance.
+
+![Overview of the OCB framework](images/method.png)
 
 ---
 
@@ -96,3 +98,46 @@ When enabled, all metrics, losses, and configuration parameters will be logged a
 ### Scripts
 
 Helper scripts for precomputing embeddings and launching training can be found in the ``scripts/`` directory.
+
+
+## COCOLogic Dataset
+
+We introduce **COCOLogic**, a benchmark derived from the MSCOCO dataset that evaluates a model’s ability to perform structured visual reasoning in a single-label classification setting. Unlike standard object recognition tasks, COCOLogic requires classification based on logical combinations of object categories, including conjunctions, disjunctions, negations, and counting constraints.
+
+Each image is assigned to exactly one of ten mutually exclusive classes, ensuring unambiguous labeling. These classes are defined by semantically meaningful logical rules (e.g., “occupied interior” requires a chair or couch *and* at least one person, while “empty seat” requires the same furniture but *no* person). Images that do not satisfy exactly one rule are excluded.
+
+![Overview of the OCB framework](images/cocologic.png)
+
+This design makes COCOLogic a challenging benchmark for both symbolic and neuro-symbolic models. COCOLogic covers scenes across ten categories with varying numbers of samples and serves as a bridge between logical reasoning and visual understanding in realistic natural images.
+
+### Class Definitions
+
+| **Class Name**       | **Class Rule**                                                                    | **Samples** |
+| -------------------- | --------------------------------------------------------------------------------- | ----------- |
+| Ambiguous Pairs      | (cat XOR dog) AND (bicycle XOR motorcycle)                                        | 36          |
+| Pair of Pets         | Exactly two categories of {cat, dog, bird} are present                            | 56          |
+| Rural Animal Scene   | At least one of {cow, horse, sheep} AND no person                                 | 2965        |
+| Leash vs Licence     | dog XOR car                                                                       | 4188        |
+| Animal Meets Traffic | At least one of {horse, cow, sheep} AND at least one of {car, bus, traffic light} | 24          |
+| Occupied Interior    | (couch OR chair) AND at least one person                                          | 8252        |
+| Empty Seat           | (couch OR chair) AND no person                                                    | 4954        |
+| Odd Ride Out         | Exactly one category of {bicycle, motorcycle, car, bus}                           | 3570        |
+| Personal Transport   | person AND (bicycle XOR car)                                                      | 279         |
+| Breakfast Guests     | bowl AND at least one of {dog, cat, horse, cow, sheep}                            | 169         |
+
+
+### Usage
+
+The cocologic dataset is parsed from the MS-COCO dataset. With the COCO dataset available, the COCOLogic class in `data.py` parses and filters the original dataset and provides COCOLogic.
+
+
+If you use the dataset, please cite the paper, for example with the following bibtex:
+
+```
+@article{steinmann2025object,
+  title={Object Centric Concept Bottlenecks},
+  author={Steinmann, David and Stammer, Wolfgang and W{\"u}st, Antonia and Kersting, Kristian},
+  journal={arXiv preprint arXiv:2505.24492},
+  year={2025}
+}
+```
