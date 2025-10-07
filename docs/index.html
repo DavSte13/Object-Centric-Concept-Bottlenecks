@@ -184,17 +184,12 @@
             <div class="columns is-centered">
                 <div class="column is-full-width">
                     <h2 class="title is-3">Combining Image-level and Object-level Concepts</h2>
-
-                    <p>
+                    <div class="content has-text-justified">
+                        <p>
                         The proposed Object-Centric Concept Bottleneck (OCB) framework enables interpretable, object-aware reasoning for complex visual tasks via the following steps:
                         (I) An object proposal module identifies and refines object candidates within an image. 
                         (II) A concept discovery module encodes the entire image and its object crops into human-understandable concept activations. 
                         (III) These activations are aggregated and passed to a simple, interpretable predictor to generate the final output.  <br />
-                    </p>
-
-
-                    <div class="content has-text-justified">
-                        <p>
                         </p>
                         <div class="hero-body">
                             <img src="./static/images/method.png" class="interpretability-image"
@@ -239,15 +234,13 @@
             <div class="columns is-centered">
                 <div class="column is-full-width">
                     <h2 class="title is-3">COCOLogic</h2>
-
-                    <p>
+                    <div class="content has-text-justified">
+                        <p>
                         We introduce COCOLogic, a benchmark derived from the MSCOCO dataset that evaluates a model’s ability to perform structured visual reasoning in a single-label classification setting. Unlike standard object recognition tasks, COCOLogic requires classification based on logical combinations of object categories, including conjunctions, disjunctions, negations, and counting constraints.
 
                         Each image is assigned to exactly one of ten mutually exclusive classes, ensuring unambiguous labeling. These classes are defined by semantically meaningful logical rules (e.g., “occupied interior” requires a chair or couch and at least one person, while “empty seat” requires the same furniture but no person). Images that do not satisfy exactly one rule are excluded.
 
                         Scripts to generate COCOLogic from the MSCOCO dataset can be found in our GitHub repository. 
-                    <div class="content has-text-justified">
-                        <p>
                         </p>
                         <div class="hero-body">
 
